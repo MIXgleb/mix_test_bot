@@ -1,72 +1,62 @@
-from get_info import get_weather
-from decouple import config
 import telebot
+from telebot import types
+from get_city_info import get_weather
+from commands import start_command, help_command, change_mycity_command, mycity_command
+from decouple import config
 
 
 bot = telebot.TeleBot(config('telegram_token'))
-default_city = 'Москва'
 
 
-@bot.message_handler(commands=['start'])
-def start(message):
-    if message.from_user.first_name:
-        user = message.from_user.first_name
-    else:
-        user = message.from_user.username
-
-    mess = f'Привет, <b>{user}</b> \n' \
-           f'Чтобы узнать погоду в любом городе, ' \
-           f'просто введите его название в поле для ввода \n' \
-           f'Чтобы узнать больше о боте введите /help'
-    bot.send_message(message.chat.id, mess, parse_mode='html')
-
-
-@bot.message_handler(commands=['help'])
-def help(message):
-    mess = 'Данный бот показывает актуальную погоду в выбранном городе. \n' \
-           'Чтобы узнать погоду в любом городе, ' \
-           'просто введите его название в поле для ввода \n\n' \
-           'Команды бота: \n' \
-           f'/default - показать погоду в городе по умолчанию (сейчас "{default_city}")\n' \
-           '/change_default_city (появится позже) - изменить город по умолчанию \n' \
-           '/help - помощь с коммандами для бота'
-    bot.send_message(message.chat.id, mess)
+@bot.message_handler(commands=['start', 'help', 'mycity', 'change_mycity'])
+def check_commands(message):
+    text = message.text
+    if text == '/start':
+        bot.send_message(message.chat.id, start_command(message), parse_mode='html')
+    elif text == '/help':
+        bot.send_message(message.chat.id, help_command())
+    elif text == '/mycity':
+        get_city(message, mycity_command())
+    elif text == '/change_mycity':
+        # bot.send_message(message.chat.id, 'Данная возможность появится чуть позже')
+        bot.reply_to(message, 'Данная возможность появится чуть позже')
+    buttons(message)
 
 
-@bot.message_handler(commands=['default'])
-def check_default_city(message):
-    get_user_city(message)
-
-
-@bot.message_handler(commands=['change_default_city'])
-def change_default_city(message):
-    bot.send_message(message.chat.id, 'Данная возможность появится чуть позже')
+@bot.message_handler(func=lambda message: message.text[0] == '/')
+def other_commands(message):
+    bot.reply_to(message, 'Команда не распознана')
+    buttons(message)
 
 
 @bot.message_handler(content_types=['text'])
 def get_user_city(message):
     print(message.from_user.first_name)
-    if message.text == '/default':
-        city = default_city
-    elif message.text[0] == '/':
-        bot.send_message(message.chat.id, f'Команда не распознана')
-        return
-    else:
-        city = message.text
+    get_city(message, message.text)
+    buttons(message)
 
-    mess = get_weather(city)
-    # photo = f'http://openweathermap.org/img/w/{mess["icon"]}.png'
 
-    if not mess['status']:
-        bot.send_message(message.chat.id, f'Город {mess["city"]} не найден. Попробуйте заново')
+def get_city(message, city):
+    response = get_weather(city)
+
+    if not response['status']:
+        bot.reply_to(message, f'Город {response["city"]} не найден. Попробуйте заново')
     else:
         bot.send_message(message.chat.id,
-                         f'Город: <b>{mess["city"]}</b> \n'
-                         f'Температура: <b>{mess["temp"]}&#176;</b> \n'
-                         f'Ощущается как: <b>{mess["feel"]}&#176;</b> \n'
-                         f'<b>{mess["descr"].capitalize()}</b>',
+                         f'Город: <b>{response["city"]}</b> \n'
+                         f'Температура: <b>{response["temp"]}&#176;</b> \n'
+                         f'Ощущается как: <b>{response["feel"]}&#176;</b> \n'
+                         f'<b>{response["descr"].capitalize()}</b>',
                          parse_mode='html')
-        # bot.send_photo(message.chat.id, photo)
 
 
-bot.polling(none_stop=True)
+def buttons(message):
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    button1 = types.InlineKeyboardButton('/mycity', callback_data='button_default_city')
+    button2 = types.InlineKeyboardButton('/help', callback_data='button_help')
+    markup.add(button1, button2)
+
+    bot.send_message(message.chat.id, 'Помощь', reply_markup=markup)
+
+
+bot.infinity_polling()
