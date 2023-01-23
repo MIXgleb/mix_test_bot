@@ -3,7 +3,7 @@ from decouple import config
 
 
 api_key = config('api_key')
-url = 'http://api.openweathermap.org/data/2.5/weather'
+url = config('url')
 
 
 def get_weather(city):
@@ -26,7 +26,6 @@ def get_weather(city):
             'temp': response['main']['temp'],
             'feel': response['main']['feels_like'],
             'descr': response['weather'][0]['description'],
-            # 'icon': response['weather'][0]['icon']
         }
 
     return city_info

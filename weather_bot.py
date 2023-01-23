@@ -1,62 +1,84 @@
 import telebot
-from telebot import types
 from get_city_info import get_weather
-from commands import start_command, help_command, change_mycity_command, mycity_command
+from commands import *
+from buttons import reply_markup
 from decouple import config
 
 
 bot = telebot.TeleBot(config('telegram_token'))
+default_city = 'Москва'
+check_change_mycity = False
 
 
 @bot.message_handler(commands=['start', 'help', 'mycity', 'change_mycity'])
 def check_commands(message):
+    global check_change_mycity
     text = message.text
     if text == '/start':
-        bot.send_message(message.chat.id, start_command(message), parse_mode='html')
+        bot.send_message(chat_id=message.chat.id, text=start_command(message),
+                         reply_markup=reply_markup(), parse_mode='html')
     elif text == '/help':
-        bot.send_message(message.chat.id, help_command())
+        bot.send_message(chat_id=message.chat.id, text=help_command(default_city),
+                         reply_markup=reply_markup())
     elif text == '/mycity':
-        get_city(message, mycity_command())
+        bot.send_chat_action(message.chat.id, 'typing')
+        get_city(message, mycity_command(default_city))
     elif text == '/change_mycity':
-        # bot.send_message(message.chat.id, 'Данная возможность появится чуть позже')
-        bot.reply_to(message, 'Данная возможность появится чуть позже')
-    buttons(message)
+        check_change_mycity = True
+        bot.send_message(chat_id=message.chat.id, text=change_mycity_command(default_city))
 
 
 @bot.message_handler(func=lambda message: message.text[0] == '/')
 def other_commands(message):
-    bot.reply_to(message, 'Команда не распознана')
-    buttons(message)
+    bot.send_message(chat_id=message.chat.id, text=other_commands(message),
+                     reply_markup=reply_markup())
 
 
 @bot.message_handler(content_types=['text'])
-def get_user_city(message):
-    print(message.from_user.first_name)
-    get_city(message, message.text)
-    buttons(message)
+def check_user_text(message):
+    global check_change_mycity
+
+    if check_change_mycity:
+        check_change_mycity = False
+        change_mycity(message)
+
+    text = message.text
+    if text == 'Погода в моем городе':
+        bot.send_chat_action(message.chat.id, 'typing')
+        get_city(message, mycity_command(default_city))
+    elif text == 'Изменить мой город':
+        check_change_mycity = True
+        bot.send_message(chat_id=message.chat.id, text=change_mycity_command(default_city))
+    elif text == 'Помощь':
+        bot.send_message(chat_id=message.chat.id, text=help_command(default_city),
+                         reply_markup=reply_markup())
+    else:
+        bot.send_chat_action(message.chat.id, 'typing')
+        get_city(message, message.text)
 
 
 def get_city(message, city):
     response = get_weather(city)
 
     if not response['status']:
-        bot.reply_to(message, f'Город {response["city"]} не найден. Попробуйте заново')
+        bot.send_message(chat_id=message.chat.id,
+                         text=f"Город '{response['city']}' не найден. Попробуйте заново",
+                         reply_markup=reply_markup())
     else:
-        bot.send_message(message.chat.id,
-                         f'Город: <b>{response["city"]}</b> \n'
+        bot.send_message(chat_id=message.chat.id,
+                         text=f'Город: <b>{response["city"]}</b> \n'
                          f'Температура: <b>{response["temp"]}&#176;</b> \n'
                          f'Ощущается как: <b>{response["feel"]}&#176;</b> \n'
                          f'<b>{response["descr"].capitalize()}</b>',
+                         reply_markup=reply_markup(),
                          parse_mode='html')
 
 
-def buttons(message):
-    markup = types.InlineKeyboardMarkup(row_width=2)
-    button1 = types.InlineKeyboardButton('/mycity', callback_data='button_default_city')
-    button2 = types.InlineKeyboardButton('/help', callback_data='button_help')
-    markup.add(button1, button2)
-
-    bot.send_message(message.chat.id, 'Помощь', reply_markup=markup)
-
+def change_mycity(message):
+    global default_city
+    default_city = message.text
+    bot.send_message(chat_id=message.chat.id,
+                     text=f"Ваш город изменен на {default_city}",
+                     reply_markup=reply_markup())
 
 bot.infinity_polling()
