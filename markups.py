@@ -1,7 +1,7 @@
 from telebot import types
 
 
-def reply_markup():
+def reply_markup_plates():
     markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True, selective=True)
     button1 = types.KeyboardButton('Погода в моем городе')
     button2 = types.KeyboardButton('Изменить мой город')

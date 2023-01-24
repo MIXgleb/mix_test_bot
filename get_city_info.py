@@ -1,9 +1,29 @@
+import telebot
 from requests import get
 from decouple import config
+from markups import reply_markup_plates
 
 
+bot = telebot.TeleBot(config('telegram_token'), parse_mode='html')
 api_key = config('api_key')
 url = config('url')
+
+
+def get_city(chat_id, city):
+    response = get_weather(city)
+
+    if not response['status']:
+        bot.send_message(chat_id=chat_id,
+                         text=f"Город <b>{response['city']}</b> не найден.\n"
+                              "Попробуйте заново",
+                         reply_markup=reply_markup_plates())
+    else:
+        bot.send_message(chat_id=chat_id,
+                         text=f'Город: <b>{response["city"]}</b> \n'
+                         f'Температура: <b>{response["temp"]}&#176;</b> \n'
+                         f'Ощущается как: <b>{response["feel"]}&#176;</b> \n'
+                         f'<b>{response["descr"].capitalize()}</b>',
+                         reply_markup=reply_markup_plates())
 
 
 def get_weather(city):
