@@ -13,6 +13,13 @@ def start_command(message):
     return mess
 
 
+def first_change_mycity_command(default_city):
+    mess = "Для начала укажите Ваш город проживания\n" \
+           f"По умолчанию указан город <b>{default_city}</b>\n" \
+           "Хотите его поменять?"
+    return mess
+
+
 def mycity_command(default_city):
     return default_city
 

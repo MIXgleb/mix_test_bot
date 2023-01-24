@@ -10,13 +10,14 @@ default_city = 'Москва'
 check_change_mycity = False
 
 
-@bot.message_handler(commands=['start', 'help', 'mycity', 'change_mycity'])
+@bot.message_handler(func=lambda message: message.text[0] == '/')
 def check_commands(message):
-    global check_change_mycity
     text = message.text
     if text == '/start':
         bot.send_message(chat_id=message.chat.id, text=start_command(message),
                          reply_markup=reply_markup())
+        bot.send_message(chat_id=message.chat.id, text=first_change_mycity_command(default_city),
+                         reply_markup=reply_markup_first_change_mycity())
     elif text == '/help':
         bot.send_message(chat_id=message.chat.id, text=help_command(default_city),
                          reply_markup=reply_markup())
@@ -24,24 +25,27 @@ def check_commands(message):
         bot.send_chat_action(message.chat.id, 'typing')
         get_city(message, mycity_command(default_city))
     elif text == '/change_mycity':
-        check_change_mycity = True
-        bot.send_message(chat_id=message.chat.id, text=change_mycity_command(default_city),
-                         reply_markup=reply_markup_change_mycity())
-
-
-@bot.message_handler(func=lambda message: message.text[0] == '/')
-def check_other_commands(message):
-    bot.send_message(chat_id=message.chat.id, text=other_commands(message.text),
-                     reply_markup=reply_markup())
+        prepare_change_mycity(message.chat.id)
+    else:
+        bot.send_message(chat_id=message.chat.id, text=other_commands(message.text),
+                         reply_markup=reply_markup())
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback(call):
     global check_change_mycity
-    check_change_mycity = False
-    bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
-    # bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id-1)
-    bot.answer_callback_query(call.id, text="Изменения отменены")
+
+    if call.data == 'cancel':
+        check_change_mycity = False
+        bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
+        bot.send_message(chat_id=call.from_user.id, text="Изменения отменены",
+                         reply_markup=reply_markup())
+        # bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id-1)
+        # bot.answer_callback_query(call.id, text="Изменения отменены")
+    elif call.data == 'yes':
+        prepare_change_mycity(call.from_user.id)
+    elif call.data == 'no':
+        bot.send_message(chat_id=call.from_user.id, text=f"Ваш город сохранен как <b>{default_city}</b>")
 
 
 @bot.message_handler(content_types=['text'])
@@ -86,6 +90,13 @@ def get_city(message, city):
                          reply_markup=reply_markup())
 
 
+def prepare_change_mycity(chat_id):
+    global check_change_mycity
+    check_change_mycity = True
+    bot.send_message(chat_id=chat_id, text=change_mycity_command(default_city),
+                     reply_markup=reply_markup_change_mycity())
+
+
 def change_mycity(message):
     global default_city, check_change_mycity
     city = message.text
@@ -99,7 +110,7 @@ def change_mycity(message):
     elif default_city == response['city']:
         bot.send_message(chat_id=message.chat.id,
                          text=f"Данный город уже назначен!\n"
-                              "Хотите его поменять?",
+                              "Попробуйте ввести другой",
                          reply_markup=reply_markup_change_mycity())
     else:
         default_city = city
