@@ -1,5 +1,7 @@
 # Telegram WeatherBot
-This bot provides information about the temperature and cloudiness in the entered city. The city is entered directly in the messages and after sending it, the bot processes it and either gives out information about the weather, or says that there is no such city. Also in its functionality there is a memorization of your city where you live. After pressing a special button or entering a special command, the bot immediately shows the weather in the city that you have assigned by default. The bot contains a bottom menu in the form of 3 buttons, as well as an auxiliary menu with hints about the bot commands (from **FatherBot** settings).
+This bot provides information about the temperature and cloudiness in the entered city. The city is entered directly in the messages and after sending it, the bot processes it and either gives out information about the weather, or says that there is no such city. Input is not case and language sensitive.
+
+Also in its functionality there is a memorization of your city where you live. After pressing a special button or entering a special command, the bot immediately shows the weather in the city that you have assigned by default. The bot contains a bottom menu in the form of 3 buttons, as well as an auxiliary menu with hints about the bot commands (from **FatherBot** settings).
 
 
 ### Requirements.txt
