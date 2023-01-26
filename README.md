@@ -46,4 +46,5 @@ This file processes the name of the city from the user and receives information 
 This is the file in which the default city is changed, checked and saved.
 
 When calling the corresponding command **(/change_mycity)**, the bot offers to change the default city or cancel the changes by pressing the **cancel** button. The next city entered in the message line will become a candidate for the new default city. If the city does not exist or the entered city matches the one already assigned by default, the bot will not change the default city to a new one and will offer to try again or cancel the changes. Otherwise, the new city will become the new default city.
+
 Pressing the **cancel** button terminates the change process.
