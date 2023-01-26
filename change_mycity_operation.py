@@ -12,15 +12,15 @@ class MyCity:
     default_city = 'Москва'
     check_change_mycity = False
 
-    @classmethod
-    def prepare_change_mycity(cls, chat_id):
-        cls.check_change_mycity = True
+    @staticmethod
+    def prepare_change_mycity(chat_id):
+        MyCity.check_change_mycity = True
         bot.send_message(chat_id=chat_id,
-                         text=Commands.change(cls.default_city),
+                         text=Commands.change(MyCity.default_city),
                          reply_markup=Markups.cancel())
 
-    @classmethod
-    def change_mycity(cls, message):
+    @staticmethod
+    def change_mycity(message):
         city = message.text
         response = get_weather(city)
 
@@ -29,14 +29,14 @@ class MyCity:
                              text=f"Город <b>{city}</b> не найден!\n"
                                   "Попробуйте ввести другой",
                              reply_markup=Markups.cancel())
-        elif cls.default_city == response['city']:
+        elif MyCity.default_city == response['city']:
             bot.send_message(chat_id=message.chat.id,
                              text=f"Данный город уже назначен!\n"
                                   "Попробуйте ввести другой",
                              reply_markup=Markups.cancel())
         else:
-            cls.default_city = city
-            cls.check_change_mycity = False
+            MyCity.default_city = city
+            MyCity.check_change_mycity = False
             bot.send_message(chat_id=message.chat.id,
-                             text=f"Ваш город изменен на <b>{cls.default_city}</b>",
+                             text=f"Ваш город изменен на <b>{MyCity.default_city}</b>",
                              reply_markup=Markups.plates())
