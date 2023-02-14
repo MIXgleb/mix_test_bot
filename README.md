@@ -3,11 +3,11 @@ This bot provides information about the temperature and cloudiness in the entere
 
 Also in its functionality there is a memorization of your city where you live. After pressing a special button or entering a special command, the bot immediately shows the weather in the city that you have assigned by default. The bot contains a bottom menu in the form of 3 buttons, as well as an auxiliary menu with hints about the bot commands (from **FatherBot** settings).
 
-
+---
 ### Requirements.txt
 ***pyTelegramBotAPI*** module is used to interact with Telegram. For API request ***requests*** module is used. To encrypt the token ***python-decouple*** is used.
 
-
+---
 ### Weather_bot.py
 The main file in which all commands used in the bot, all messages entered by the user, as well as all responses from buttons **(markups.py)** are processed.
 
@@ -17,11 +17,11 @@ Commands:
 + **/mycity** - a command that will show the weather in your default city.
 + **/change_mycity** - a command will tell you your current default city and offer to change it. To change, you need to enter a new city in the message line, after sending a message to the bot, the changes will be saved. Also, the user can cancel the changes by clicking on the corresponding button.
 
-
+---
 ### Commands.py
 This file contains all entries that will be displayed to the user when calling bot commands.
 
-
+---
 ### Markups.py
 This file contains the constructor of all buttons in the bot.
 
@@ -37,11 +37,11 @@ This file contains the constructor of all buttons in the bot.
 **Cancel button** - inline button when user wants to change default city
 + button *"Отменить изменение"* - cancels the default city change and continues working with the bot.
 
-
+---
 ### Get_city_info.py
 This file processes the name of the city from the user and receives information about the weather ***(requests)***. If the city is found, then the user is shown full information about the weather, otherwise it is reported that the city was not found.
 
-
+---
 ### Change_mycity_operation.py
 This is the file in which the default city is changed, checked and saved.
 
