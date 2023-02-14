@@ -41,7 +41,6 @@ class MyCity:
         else:
             cls.users_default_cities[user_id] = city
             cls.check_change_mycity = False
-            print(cls.users_default_cities)
             bot.send_message(chat_id=chat_id,
                              text=f"Ваш город изменен на <b>{city}</b>",
                              reply_markup=Markups.plates())
